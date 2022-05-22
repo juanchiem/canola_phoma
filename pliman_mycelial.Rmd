@@ -1,0 +1,44 @@
+---
+title: "Untitled"
+output: html_document
+date: '2022-05-21'
+---
+
+```{r setup, include=FALSE}
+pacman::p_load(tidyverse, pliman)
+```
+
+```{r}
+f0 <- image_import("exp_pics/az_1.jpeg")
+dpi(f0)
+back <- pick_palette(f0)
+fore <- pick_palette(f0)
+```
+
+
+```{r}
+res <- 
+analyze_objects(f0,
+                background = back,
+                foreground = fore,
+                watershed = FALSE)
+
+```
+
+```{r}
+meas <- get_measures(res, dpi = 81)
+
+plot_measures(meas,
+              col = "black",
+              measure = "area",
+              size = 2)
+```
+
+quero filtrar objetos com circularidade maior a 0.5
+
+```{r}
+meas %>%  
+  # as.data.frame  %>%   
+  dplyr::filter(circularity>.8)
+```
+
