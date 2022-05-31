@@ -11,7 +11,15 @@ pacman::p_load(tidyverse, pliman)
 ```{r}
 f0 <- image_import("exp_pics/az_1.jpeg")
 dpi(f0)
+```
+
+
+```{r}
 back <- pick_palette(f0)
+```
+
+
+```{r}
 fore <- pick_palette(f0)
 ```
 
@@ -27,6 +35,7 @@ analyze_objects(f0,
 
 ```{r}
 meas <- get_measures(res, dpi = 81)
+plot_measures(meas, measure = "circularity")
 
 plot_measures(meas,
               col = "black",
@@ -34,7 +43,7 @@ plot_measures(meas,
               size = 2)
 ```
 
-quero filtrar objetos com circularidade maior a 0.5
+quero filtrar objetos com circularidade maior a 0.8
 
 ```{r}
 meas %>%  
