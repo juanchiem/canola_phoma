@@ -6,6 +6,15 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r}
+https://stackoverflow.com/questions/59975512/nans-produced-warning-when-calculating-absolute-ec50-values-with-drc-package
+
+https://stackoverflow.com/questions/68345031/error-in-plotting-dose-response-curve-in-ggplot-with-drc-package?rq=1
+
+https://alvesks.github.io/ec50estimator/articles/how_to_use.html
+```
+
+
 ```{r setup, include=FALSE}
 pacman::p_load(tidyverse, pliman, drc)
 ```
