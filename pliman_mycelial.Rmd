@@ -24,9 +24,9 @@ pacman::p_load(tidyverse, pliman, drc)
 
 ```{r}
 setwd(here::here("exp_pics"))
-getwd()
-list.files()
-az <- image_import("az_0_0001.png")
+# getwd()
+# list.files()
+az <- image_import("az@0_0001.png")
 dpi(az)
 back <- pick_palette(az)
 fore <- pick_palette(az)
