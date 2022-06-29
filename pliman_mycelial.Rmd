@@ -71,6 +71,8 @@ az_res %>%
   stat_summary(fun = mean, color = "red", geom = "line", aes(group = 1)) 
 ```
 
+# MODEL 
+
 ```{r}
 model<- drm(area~dose, data=az_res, fct=LL.4(names = c("Slope", "Lower Limit", "Upper Limit", "ED50")))
 plot(model, type="all")
