@@ -2,52 +2,72 @@
 title: "Untitled"
 output: html_document
 date: '2022-05-21'
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
-pacman::p_load(tidyverse, pliman)
-```
-
-```{r}
-f0 <- image_import("exp_pics/az_1.jpeg")
-dpi(f0)
+pacman::p_load(tidyverse, pliman, drc)
 ```
 
 
 ```{r}
-back <- pick_palette(f0)
+setwd(here::here("exp_pics"))
+getwd()
+list.files()
+az <- image_import("az_0_0001.png")
+dpi(az)
+back <- pick_palette(az)
+fore <- pick_palette(az)
 ```
 
 
 ```{r}
-fore <- pick_palette(f0)
-```
-
-
-```{r}
-res <- 
-analyze_objects(f0,
+res_az <- analyze_objects(az,
                 background = back,
                 foreground = fore,
                 watershed = FALSE)
 
+az_0.1 <- get_measures(res_az)
+plot_measures(az_0.1, measure = "circularity", col = "red")
+plot_measures(az_0.1, col = "black", measure = "area", size = 1.5)
+
+# az_0.1 <- as_tibble(az_0.1) %>% 
+#   filter(circularity>.75)
+# az_0.1
 ```
 
 ```{r}
-meas <- get_measures(res, dpi = 81)
-plot_measures(meas, measure = "circularity")
-
-plot_measures(meas,
-              col = "black",
-              measure = "area",
-              size = 2)
+list_res <- analyze_objects(pattern = "az@", 
+                            show_image = T,
+                            background = back,
+                            foreground = fore,
+                            watershed = F)
+az_res <- list_res[["results"]] %>% 
+  separate(img, c("ai", "dose"), sep ="@") %>% 
+    mutate(dose= str_replace_all(dose, "_", ".") %>% 
+           as.numeric) %>% 
+  mutate(dose = recode(dose, `0.0001`=0)) %>% 
+  dplyr::select(ai, dose, area)
+az_res  
 ```
 
-quero filtrar objetos com circularidade maior a 0.8
+```{r}
+az_res %>% 
+  ggplot()+ 
+  aes(dose, area) +
+  geom_point()+
+  stat_summary(fun = mean, color = "red", geom = "line", aes(group = 1)) 
+```
 
 ```{r}
-meas %>%  
-  # as.data.frame  %>%   
-  dplyr::filter(circularity>.8)
+model<- drm(area~dose, data=az_res, fct=LL.4(names = c("Slope", "Lower Limit", "Upper Limit", "ED50")))
+plot(model, type="all")
+```
+
+```{r}
+summary(model)
+ED(model, respLev = 50, interval="delta", type = "absolute") 
+ED(gro.LL.3, respLev = c(50), type = "relative") # this works fine
 ```
 
