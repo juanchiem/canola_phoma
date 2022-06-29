@@ -11,6 +11,8 @@ https://stackoverflow.com/questions/59975512/nans-produced-warning-when-calculat
 
 https://stackoverflow.com/questions/68345031/error-in-plotting-dose-response-curve-in-ggplot-with-drc-package?rq=1
 
+http://www.darrenkoppel.com/2020/09/04/dose-response-modelling-and-model-selection-in-r/
+  
 https://alvesks.github.io/ec50estimator/articles/how_to_use.html
 ```
 
