@@ -1,0 +1,6 @@
+pacman::p_load(filesstrings)
+dir.create("RemoveFileNameSpaces_test")
+setwd("RemoveFileNameSpaces_test")
+files <- c("1litres 1.txt", "1litres 30.txt", "3litres 5.txt")
+file.create(files)
+remove_filename_spaces(pattern = "txt$", replacement = "_")

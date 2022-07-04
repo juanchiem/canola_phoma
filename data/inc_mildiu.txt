@@ -1,0 +1,10 @@
+trat	rep	y	n
+Testigo	1	29	50
+Testigo	2	24	50
+Testigo	3	27	50
+"Fluopicolide + Propamocarb"	1	16	50
+"Fluopicolide + Propamocarb"	2	16	50
+"Fluopicolide + Propamocarb"	3	17	50
+Ciazofamid	1	14	50
+Ciazofamid	2	16	50
+Ciazofamid	3	18	50

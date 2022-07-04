@@ -18,7 +18,9 @@ https://alvesks.github.io/ec50estimator/articles/how_to_use.html
 
 
 ```{r setup, include=FALSE}
-pacman::p_load(tidyverse, pliman, drc)
+pacman::p_load(tidyverse, pliman, drc, conflicted, drcData)
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
 ```
 
 
@@ -40,8 +42,19 @@ res_az <- analyze_objects(az,
                 watershed = FALSE)
 
 az_0.1 <- get_measures(res_az)
-plot_measures(az_0.1, measure = "circularity", col = "red")
-plot_measures(az_0.1, col = "black", measure = "area", size = 1.5)
+
+plot_measures(az_0.1, 
+              measure = "id",
+              col = "blue",
+              vjust=80)
+
+plot_measures(az_0.1, 
+              measure = "area",
+              col = "blue")
+
+plot_measures(az_0.1, measure = "circularity", col = "red", hjust=100)
+
+plot_measures(az_0.1, measure = "eccentricity", col = "green", hjust=-100)
 
 # az_0.1 <- as_tibble(az_0.1) %>% 
 #   filter(circularity>.75)
@@ -54,33 +67,74 @@ list_res <- analyze_objects(pattern = "az@",
                             background = back,
                             foreground = fore,
                             watershed = F)
+
 az_res <- list_res[["results"]] %>% 
+  select(img, id, area) %>% 
+  # filter()
   separate(img, c("ai", "dose"), sep ="@") %>% 
     mutate(dose= str_replace_all(dose, "_", ".") %>% 
            as.numeric) %>% 
-  mutate(dose = recode(dose, `0.0001`=0)) %>% 
-  dplyr::select(ai, dose, area)
-az_res  
+  # mutate(dose = recode(dose, `0.0001`=0)) %>% 
+  dplyr::select(ai, dose, area) %>% 
+  group_by(dose) %>% 
+  mutate(id = row_number())
+
+az_res  %>% count(dose)
+
 ```
 
 ```{r}
+library(scales)
+
 az_res %>% 
   ggplot()+ 
   aes(dose, area) +
   geom_point()+
-  stat_summary(fun = mean, color = "red", geom = "line", aes(group = 1)) 
+  scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(10^.x))) +
+  geom_smooth(method = drm, method.args = list(fct = L.4()), se = FALSE, 
+              aes(group=id), col = "gray70") + 
+  geom_smooth(method = drm, method.args = list(fct = L.4()), se = FALSE) + 
+  theme_bw()
 ```
 
 # MODEL 
 
 ```{r}
-model<- drm(area~dose, data=az_res, fct=LL.4(names = c("Slope", "Lower Limit", "Upper Limit", "ED50")))
+model<- drm(area~dose, 
+            data=az_res, 
+            fct=LL.4(names = c("Slope", "Lower Limit", "Upper Limit", "ED50")))
 plot(model, type="all")
 ```
 
 ```{r}
 summary(model)
-ED(model, respLev = 50, interval="delta", type = "absolute") 
-ED(gro.LL.3, respLev = c(50), type = "relative") # this works fine
+ED(model, respLev = 50, interval="delta", 
+   type = "absolute") 
+ED(model, respLev = c(50), type = "relative") # this works fine
+
+```
+
+
+```{r}
+# predictions and confidence intervals.
+demo.fits <- expand.grid(dose=exp(seq(log(1.00e-04), log(1.00e-0), length=100))) 
+# new data with predictions
+pm <- predict(model, newdata=demo.fits, interval="confidence") 
+demo.fits$p <- pm[,1]
+demo.fits$pmin <- pm[,2]
+demo.fits$pmax <- pm[,3]
+```
+
+```{r}
+# az_res$XX <- az_res$X
+# demo1$XX[demo1$XX == 0] <- 1.00e-09
+# Then comes plotting the curve, omitting geom_ribbon stops the errors from being drawn.
+ggplot(az_res, aes(x = dose, y = area)) +
+  geom_point() +
+  geom_ribbon(data=demo.fits, aes(x=dose, y=p, ymin=pmin, ymax=pmax), alpha=0.2) +
+  geom_line(data=demo.fits, aes(x=dose, y=p)) +
+  scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(10^.x))) 
 ```
 

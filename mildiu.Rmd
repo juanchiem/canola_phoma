@@ -1,0 +1,124 @@
+---
+title: "Untitled"
+output: html_document
+date: '2022-05-21'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+# https://olivoto.netlify.app/tutorials/pliman_ip/04_phytopathometry/
+```
+
+# setup
+
+```{r setup, include=FALSE}
+# pacman::p_load(tidyverse, pliman)
+pacman::p_load(tidyverse)
+conflicted::conflict_prefer("filter", "dplyr")
+conflicted::conflict_prefer("select", "dplyr")
+```
+
+# process pictures
+
+```{r}
+setwd(here::here("mildiu_pics"))
+# getwd()
+files <- list.files()%>% data.frame 
+```
+
+```{r}
+img <- image_import("exemp_1.jpeg", plot = TRUE)
+h <- image_import("health.png")
+d <- image_import("dis.png")
+b <- image_import("back.png")
+image_combine(h, d, b, ncol = 3)
+```
+
+```{r}
+ctrol_1.1 <- image_import(files[1,1])
+```
+
+
+```{r}
+sev1 <- 
+  measure_disease(img = ctrol_1.1,
+                  img_healthy = h,
+                  img_symptoms = d,
+                  img_background = b)
+```
+
+
+```{r}
+system.time(
+  sev_lote <- 
+    measure_disease(pattern = "_",
+                    img_healthy = h,
+                    img_symptoms = d,
+                    img_background = b,
+                    show_image = FALSE,
+                    save_image = TRUE,
+                    dir_processed = here::here("mildiu_pics", "processed"),
+                    show_contour = FALSE,
+                    col_lesions = "brown")
+)
+```
+
+```{r}
+save(sev_lote, file=here::here("data", "sev_lote.Rdata"))
+
+# sev_lote[["severity"]] %>% 
+#   rio::export(file=here::here("data", "sev_lote.csv"))
+
+```
+
+# Data
+
+```{r}
+inc <- rio::import(here::here("data/inc_mildiu.txt"))
+load(here::here("data/sev_lote.Rdata"))
+
+sev <- sev_lote[["severity"]] %>% 
+  separate(img, c("trat", "rep")) %>% 
+  group_by(trat, rep) %>% 
+  summarise(sev_cond=mean(symptomatic)) %>%  
+  ungroup() %>% 
+  mutate_at(vars(trat, rep), as.factor)
+```
+
+
+```{r}
+mild <- inc %>% 
+  mutate_at(vars(trat, rep), as.factor) %>% 
+  left_join(sev %>% 
+              mutate(trat = recode(trat, 
+                       `ctrol` = "Testigo",
+                       `inf` = "Fluopicolide + Propamocarb" , 
+                       `ra` = "Ciazofamid"))) %>% 
+  group_by(trat, rep) %>% 
+  mutate(sev_media = sev_cond*(y/n))
+mild
+save(mild, file=here::here("data", "mild.Rdata"))
+```
+
+```{r}
+mild %>% 
+  ggplot(aes(x=trat, y=y/n*100)) + 
+  geom_boxplot() + 
+  geom_point() + 
+  labs(title = "Incidencia")
+
+mild %>% 
+  ggplot(aes(x=trat, y=sev_cond)) + 
+  geom_boxplot() + 
+  geom_point() + 
+  labs(title = "Severidad condicional")
+
+mild %>% 
+  ggplot(aes(x=trat, y=sev_media)) + 
+  geom_boxplot() + 
+  geom_point() + 
+  labs(title = "Severidad media")
+
+```
+
